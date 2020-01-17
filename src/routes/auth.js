@@ -20,7 +20,7 @@ router.post("/register", validate("register"), async (req, res) => {
       },
       { where: { uuid: user.uuid } }
     );
-    const email = await sendMail("emailConfirmation", req.body.email, token);
+    //const email = await sendMail("emailConfirmation", req.body.email, token);
     handler(res, "success", "Registration successfull");
   } catch (error) {
     handler(res, "internalError", error);
@@ -41,7 +41,7 @@ router.post("/login", validate("login"), async (req, res) => {
     }
     //✅perform request
     const token = await user.generateToken();
-    handler(res, "success", token);
+    handler(res, "success", { session: token, user: user.getProfile() });
   } catch (error) {
     handler(res, "internalError", error);
   }
@@ -102,6 +102,42 @@ router.post(
         res,
         "success",
         "If this email is associated with an account, a confirmation as been sent to it."
+      );
+    } catch (error) {
+      handler(res, "internalError", error);
+    }
+  }
+);
+
+router.post(
+  "/auth/request/resetPassword",
+  validate("requestResetPassword"),
+  async (req, res) => {
+    try {
+      //🛂validate request
+      const user = await User.findOne({ where: { email: req.body.email } });
+      if (!user) {
+        //Send a success message even if no user exists to prevent user enumeration
+        handler(
+          res,
+          "success",
+          "If this email is associated with an account, a reset link as been sent to it."
+        );
+        return;
+      }
+      //✅perform request
+      const token = await user.generateConfirmationToken();
+      const updateUser = await User.update(
+        {
+          resetPasswordToken: token
+        },
+        { where: { uuid: user.uuid } }
+      );
+      const email = await sendMail("resetPassword", req.body.email, token);
+      handler(
+        res,
+        "success",
+        "If this email is associated with an account, a reset as been sent to it."
       );
     } catch (error) {
       handler(res, "internalError", error);

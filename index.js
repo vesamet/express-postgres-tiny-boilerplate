@@ -1,16 +1,21 @@
-require("dotenv").config()
+require("dotenv").config();
 
 //Api--------------------
-const express = require("express")
-const app = express()
-var bodyParser = require("body-parser")
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+const express = require("express");
+const app = express();
+var bodyParser = require("body-parser");
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+//Error Handling
+const handler = require("./src/utilities/messagesHandler");
+app.use(function errorHandler(err, req, res, next) {
+  handler(res, "internalError", err.message);
+});
 //-----------------------
 
 //Security---------------
-const helmet = require("helmet")
-app.use(helmet())
+const helmet = require("helmet");
+app.use(helmet());
 //-----------------------
 
 //Monitoring-------------
@@ -28,21 +33,20 @@ app.use(helmet())
 //-----------------------
 
 //Routes-----------------
-const fs = require("fs")
+const fs = require("fs");
 fs.readdir("./src/routes", (err, files) => {
   files.forEach(file => {
-    app.use("/v1/", require("./src/routes/" + file))
-  })
-})
+    app.use("/v1/", require("./src/routes/" + file));
+  });
+});
 //-----------------------
 
-
 app.use(function errorHandler(err, req, res, next) {
-  res.status(500)
-  res.render("errorEstis", { error: err })
-})
+  res.status(500);
+  res.render("errorEstis", { error: err });
+});
 //Enable api
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`)
-})
+  console.log(`Server is listening on port ${PORT}`);
+});

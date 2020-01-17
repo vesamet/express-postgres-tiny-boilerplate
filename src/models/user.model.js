@@ -29,6 +29,10 @@ module.exports = (sequelize, dataTypes) => {
         type: dataTypes.BOOLEAN,
         allowNull: true,
         defaultValue: false
+      },
+      resetPasswordToken: {
+        type: dataTypes.STRING,
+        allowNull: true
       }
     },
     {
@@ -57,7 +61,7 @@ module.exports = (sequelize, dataTypes) => {
     });
   User.prototype.getProfile = function() {
     const profile = this;
-    profile.uuid = profile.password = undefined;
+    profile.uuid = profile.password = profile.confirmationToken = undefined;
     return profile;
   };
 
