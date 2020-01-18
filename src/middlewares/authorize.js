@@ -5,7 +5,7 @@ module.exports = function() {
     try {
       res.locals.user = undefined
       //check if token is valid
-      const token = req.body.session || req.query.session || undefined
+      const token = req.body.session || req.query.session || req.get('session') || undefined
       const verifiedToken = User.verifyToken(token)
       if (!verifiedToken || verifiedToken.error) {
         //Token is invalid
@@ -14,11 +14,9 @@ module.exports = function() {
           "error",
           "Oh, your session has expired. Please refresh the page."
         )
-      } else {
+        return
+      }
         //Token is valid
-
-        //Refresh token if required
-
         //Retrieve user associated with the token
         const user = await User.findOne({ where: { uuid: verifiedToken.uuid } })
         if (!user) {
@@ -28,10 +26,9 @@ module.exports = function() {
             "The user associated with your session doesn't exists. Please refresh the page."
           )
         }
-        //Save the user profile locally for
-        res.locals.user = user.getProfile()
+        //Save the user locally
+        res.locals.user = user
         next()
-      }
     } catch (error) {
       handler(res, "internalError", error)
     }

@@ -64,6 +64,13 @@ const schemas = {
       .required()
       .min(8)
       .max(300)
+  }),
+  //User
+  changePassword: Joi.object().keys({
+    password: Joi.string()
+      .required()
+      .min(8)
+      .max(300)
   })
 
   // define all the other schemas below

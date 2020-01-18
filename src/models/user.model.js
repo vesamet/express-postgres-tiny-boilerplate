@@ -1,7 +1,7 @@
-const sharedTypes = require("../utilities/sharedTypes");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const _ = require("lodash");
+const sharedTypes = require("../utilities/sharedTypes")
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+const _ = require("lodash")
 module.exports = (sequelize, dataTypes) => {
   const User = sequelize.define(
     "user",
@@ -40,40 +40,43 @@ module.exports = (sequelize, dataTypes) => {
       paranoid: true,
       hooks: {
         beforeCreate: async function(user) {
-          user.password = await bcrypt.hash(user.password, process.env.PW_SALT);
+          user.password = await bcrypt.hash(user.password, process.env.PW_SALT)
         }
       }
     }
-  );
+  )
   //Instance methods
   User.prototype.validPassword = async function(password) {
-    return await bcrypt.compareSync(password, this.password);
-  };
-  (User.prototype.generateToken = function() {
+    return await bcrypt.compareSync(password, this.password)
+  }
+  ;(User.prototype.generateToken = function() {
     return jwt.sign({ uuid: this.uuid }, process.env.JWT_SALT, {
       expiresIn: "15m"
-    });
+    })
   }),
     (User.prototype.generateConfirmationToken = function() {
       return jwt.sign({ uuid: this.uuid }, process.env.JWT_SALT, {
         expiresIn: "1d"
-      });
-    });
+      })
+    })
   User.prototype.getProfile = function() {
-    const profile = this;
-    profile.uuid = profile.password = profile.confirmationToken = undefined;
-    return profile;
-  };
+    const profile = this
+    profile.uuid = profile.password = profile.confirmationToken = profile.resetPasswordToken = undefined
+    return profile
+  }
 
   //Class methods
   User.verifyToken = function(token) {
     try {
-      let tokenPayload = jwt.verify(token, process.env.JWT_SALT);
-      return tokenPayload;
+      let tokenPayload = jwt.verify(token, process.env.JWT_SALT)
+      return tokenPayload
     } catch (error) {
-      return { error: error };
+      return { error: error }
     }
-  };
+  }
+  User.hashPassword = async function(password) {
+    return await bcrypt.hash(password, process.env.PW_SALT)
+  }
 
-  return User;
-};
+  return User
+}

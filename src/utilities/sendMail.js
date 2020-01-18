@@ -1,7 +1,18 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require("nodemailer")
 
 async function sendMail(type, email, token) {
   try {
+    //Stop the request if Block email environment variable is truty
+    if (process.env.SMTP_BLOCK_EMAIL == "true") {
+      console.log(
+        "request for " +
+          type +
+          " received. Email not sent because SMTP_BLOCK_EMAIL is set to true."
+      )
+      console.log("Token given is : " + token)
+      return
+    }
+    //Define transporter
     let transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
@@ -11,26 +22,35 @@ async function sendMail(type, email, token) {
         pass: process.env.SMTP_PW
       },
       debug: true
-    });
+    })
     //Define email:
-    var subject, text, actionUrl, message, actionLabel, html;
+    //You may define other email templates by adding them in the switch case.
+    var subject, text, actionUrl, message, actionLabel
     switch (type) {
       case "emailConfirmation":
-        subject = "Confirm Your Email ✔";
-        actionUrl = process.env.APP_URL + "/?confirmEmail=" + token;
-        actionLabel = "CONFIRM YOUR EMAIL";
-        message = "Confirm your Email by clicking on the link below:<br> ";
-        text = message + actionUrl;
-        break;
+        subject = "Confirm Your Email ✔"
+        actionUrl = process.env.APP_URL + "/?confirmEmail=" + token
+        actionLabel = "CONFIRM YOUR EMAIL"
+        message = "Confirm your Email by clicking on the link below:<br> "
+        text = message + actionUrl
+        break
       case "resetPassword":
-        subject = "Reset Your Password ✔";
-        actionUrl = process.env.APP_URL + "/?resetPassword=" + token;
-        actionLabel = "RESET YOUR PASSWORD";
-        message = "Define a new pasword by following the link below:<br> ";
-        text = message + actionUrl;
-        break;
+        subject = "Reset Your Password ✔"
+        actionUrl = process.env.APP_URL + "/?resetPassword=" + token
+        actionLabel = "RESET YOUR PASSWORD"
+        message = "Define a new pasword by following the link below:<br> "
+        text = message + actionUrl
+        break
+      case "passwordChange":
+        subject = "Password Changed"
+        actionUrl = ""
+        actionLabel = ""
+        message = `Hi there. We just wanted to inform you that your password has been successfully changed.<br>
+          If you aren't the one who changed it, please request a password reset by following the corresponding link on the login page.`
+        text = message
+        break
       default:
-        throw "No email template defined";
+        throw "No email template defined"
     }
     //Send mail
     let info = await transporter.sendMail({
@@ -116,11 +136,11 @@ async function sendMail(type, email, token) {
 </body>
 </html>
     `
-    });
-    console.log("Message sent: %s", info.messageId);
-    return info.messageId;
+    })
+    console.log("Message sent: %s", info.messageId)
+    return info.messageId
   } catch (error) {
-    throw error;
+    throw error
   }
 }
-module.exports = sendMail;
+module.exports = sendMail
